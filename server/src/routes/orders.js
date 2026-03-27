@@ -49,16 +49,27 @@ router.post('/', verifyToken, async (req, res) => {
     const cash = typeof cashReceived === 'number' && cashReceived > 0 ? cashReceived : '';
     const change = cash !== '' ? parseFloat((cash - grandTotal).toFixed(2)) : '';
 
-    // Write one row per item
-    for (const item of itemRows) {
+    // Write rows: first row has full bill info, subsequent rows only have item details
+    for (let i = 0; i < itemRows.length; i++) {
+      const item = itemRows[i];
+      const isFirst = i === 0;
       await appendRow('Orders', [
-        billNo, date, time, name, phone,
-        item.category, item.name, item.qtyDisplay,
-        item.unitPrice.toFixed(2), item.itemTotal.toFixed(2),
-        subtotal.toFixed(2), item.gstRate, item.gstAmt.toFixed(2),
-        grandTotal.toFixed(2),
-        cash !== '' ? cash.toFixed(2) : 'Cash',
-        change !== '' ? change.toFixed(2) : '-',
+        isFirst ? billNo        : '',
+        isFirst ? date          : '',
+        isFirst ? time          : '',
+        isFirst ? name          : '',
+        isFirst ? phone         : '',
+        item.category,
+        item.name,
+        item.qtyDisplay,
+        item.unitPrice.toFixed(2),
+        item.itemTotal.toFixed(2),
+        isFirst ? subtotal.toFixed(2)                        : '',
+        isFirst ? ''                                          : '',   // GST% — blank on non-first
+        isFirst ? totalGST.toFixed(2)                        : '',
+        isFirst ? grandTotal.toFixed(2)                      : '',
+        isFirst ? (cash !== '' ? cash.toFixed(2) : 'Cash')   : '',
+        isFirst ? (change !== '' ? change.toFixed(2) : '-')  : '',
       ]);
     }
 

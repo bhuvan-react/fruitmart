@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useCart, getQtyDisplay, getPriceLabel } from '../context/CartContext';
 
@@ -25,8 +26,8 @@ function getFruitEmoji(name = '') {
   return '🛒';
 }
 
-function StockBadge({ stock }) {
-  if (stock === 0) return <span className="stock out">Out of stock</span>;
+function AvailabilityBadge({ available, stock }) {
+  if (!available) return <span className="stock out">Out of Stock</span>;
   if (stock <= 5) return <span className="stock low">Only {stock} left!</span>;
   return null;
 }
@@ -42,7 +43,8 @@ function CartStepper({ item, onIncrement, onDecrement }) {
 }
 
 export default function ShopPage() {
-  const { addToCart, incrementItem, decrementItem, items } = useCart();
+  const { addToCart, incrementItem, decrementItem, items, subtotal } = useCart();
+  const navigate = useNavigate();
   const [fruits, setFruits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -111,6 +113,12 @@ export default function ShopPage() {
         </p>
       )}
 
+      {items.length > 0 && (
+        <button className="go-to-cart-btn" onClick={() => navigate('/cart')}>
+          🛒 Go to Cart — {items.length} item{items.length !== 1 ? 's' : ''} &nbsp;|&nbsp; ₹{subtotal.toFixed(2)}
+        </button>
+      )}
+
       <div className="fruits-grid">
         {filtered.map((fruit) => {
           const inCart = cartMap[fruit.name];
@@ -140,9 +148,13 @@ export default function ShopPage() {
                   ₹{fruit.price.toFixed(2)}
                   <span className="price-unit">{getPriceLabel(fruit.unit)}</span>
                 </div>
-                <StockBadge stock={fruit.stock} />
+                <AvailabilityBadge available={fruit.available} stock={fruit.stock} />
 
-                {inCart ? (
+                {!fruit.available ? (
+                  <button className="btn btn-full add-btn" disabled style={{ background: '#e0e0e0', color: '#9e9e9e', cursor: 'not-allowed' }}>
+                    Out of Stock
+                  </button>
+                ) : inCart ? (
                   <CartStepper
                     item={inCart}
                     onIncrement={() => incrementItem(fruit.name)}
@@ -152,7 +164,6 @@ export default function ShopPage() {
                   <button
                     className="btn btn-primary btn-full add-btn"
                     onClick={() => addToCart(fruit)}
-                    disabled={fruit.stock === 0}
                   >
                     + Add to Cart
                   </button>

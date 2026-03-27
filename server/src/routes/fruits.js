@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', verifyToken, async (req, res) => {
   try {
     const rows = await getRows('Fruits');
-    // Columns: [0]=Name, [1]=Price, [2]=ImageURL, [3]=Stock, [4]=Category, [5]=Unit
+    // Columns: [0]=Name, [1]=Price, [2]=ImageURL, [3]=Stock, [4]=Category, [5]=Unit, [6]=Availability
     const fruits = rows
       .filter((row) => row[0]) // skip empty rows
       .map((row) => ({
@@ -18,6 +18,7 @@ router.get('/', verifyToken, async (req, res) => {
         stock: parseInt(row[3], 10) || 0,
         category: row[4] || 'Other',
         unit: row[5] || 'pcs',
+        available: (row[6] || 'Yes').trim().toLowerCase() === 'yes',
       }));
 
     return res.json(fruits);
