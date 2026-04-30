@@ -16,6 +16,13 @@ function getSheetId() {
   return id;
 }
 
+function getActiveSheetConfig() {
+  return {
+    sheetId: (process.env.GOOGLE_SHEET_ID || '').trim(),
+    serviceAccountEmail: (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '').trim(),
+  };
+}
+
 async function getRows(tabName) {
   const sheets = google.sheets({ version: 'v4', auth: getAuth() });
   const res = await sheets.spreadsheets.values.get({
@@ -35,4 +42,4 @@ async function appendRow(tabName, values) {
   });
 }
 
-module.exports = { getRows, appendRow };
+module.exports = { getRows, appendRow, getActiveSheetConfig };
